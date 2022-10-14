@@ -1,7 +1,7 @@
 use KSIEGARNIA
 go
 
-drop view if exists ksiazki_view
+drop view if exists Ksiazki_view
 go
 drop view if exists Zamowienia_view
 go
@@ -9,8 +9,19 @@ drop view if exists ZamowieniaSzczegoly_view
 go
 drop view if exists Klienci_view
 go
+drop view if exists AktywneZamowienia_view
+go
+drop view if exists StatystykaSprzedazy_view
+go
+drop view if exists AktywniKlienci_view
+go
+drop view if exists StatystykaSprzedazyKsiazek_view
+go
+drop view if exists StatystykaMiast_view
+go
 
-create view ksiazki_view as
+
+create view Ksiazki_view as
 select 
 	k.ksiazkaId, k.tytul, k.rokWydania, k.cena, k.dostepnaIlosc, 
 	case 
@@ -31,6 +42,7 @@ from
   Kategorie ka on ka.kategoriaId = kk.kategoriaId 
 go
 
+
 create view Zamowienia_view as
 select z.zamowienieId, z.nrZamowienia, z.dataZamowienia, z.klientId,
 	CASE 
@@ -48,6 +60,7 @@ group by z.zamowienieId, z.nrZamowienia, z.dataZamowienia, z.klientId, s.statusN
 	END
 go
 
+
 create view ZamowieniaSzczegoly_view as
 select z.zamowienieId, z.nrZamowienia, z.dataZamowienia, z.klientId, 
 	CASE
@@ -61,6 +74,7 @@ from Zamowienia z JOIN
 	Ksiazki k ON k.ksiazkaId = sp.ksiazkaId 
 
 go
+
 
 create view Klienci_view as
 select k.klientId, k.nrKlienta, k.imie, k.nazwisko,
@@ -82,5 +96,79 @@ select k.klientId, k.nrKlienta, k.imie, k.nazwisko,
 from Klienci k JOIN 
 	Adresy A ON A.adresId = k.adresId JOIN
 	Emaile e ON e.emailId = k.emailId 
+go
 
+
+create view AktywneZamowienia_view as
+select k.klientId, k.nrKlienta, k.imie, k.nazwisko, k.klientPlec, k.klientAktywny,
+	k.dataAktywacji, k.adresEmail, k.emailAktywny,
+	k.kraj, k.miasto, k.kodPocztowy, k.ulica, k.nrDomu, k.nrLokalu,
+	z.zamowienieId, z.nrZamowienia, z.dataZamowienia,
+	CASE
+		when z.oplacone = 1 then 'op³acone'
+		else 'nieop³acone'
+	end as czyZamowienieJestOplacone,
+	s.statusNazwa [status]
+from Klienci_view k JOIN
+	Zamowienia z on z.klientId = k.klientId JOIN
+	Statusy s on s.statusId = z.statusId
+where s.statusNazwa not in('Zrealizowane', 'Anulowane') 
+go
+
+
+create view StatystykaSprzedazy_view as
+select 
+	MONTH(z.dataZamowienia) + '/' + YEAR(z.dataZamowienia) as okres, 
+	SUM(s.ilosc) iloscKsiazek, 
+	SUM(s.wartosc) lacznaWartosc
+from 
+	Zamowienia z JOIN 
+	Sprzedaz s on z.zamowienieId = s.zamowienieId
+group by 
+	MONTH(z.dataZamowienia) + '/' + YEAR(z.dataZamowienia)
+go
+
+
+create view AktywniKlienci_view as
+select  
+	MONTH(k.dataAktywacji) + '/' + YEAR(k.dataAktywacji) okres, 
+	COUNT(k.klientId) liczbaNowychKlientow
+from Klienci k 
+where k.aktywny = 1
+group by 
+	MONTH(k.dataAktywacji) + '/' + YEAR(k.dataAktywacji)
+go
+
+
+create view StatystykaSprzedazyKsiazek_view as
+select 
+	MONTH(z.dataZamowienia) + '/' + YEAR(z.dataZamowienia) as okres,
+	k.ksiazkaId, k.tytul, 
+	SUM(s.ilosc) as iloscSprzedanychKsiazek, 
+	SUM(s.wartosc) as wartoscSprzedanychKsiazek,
+	k.rokWydania, kat.nazwaKategorii, a.autorId, a.imie, a.nazwisko, a.pseudonim
+from 
+	Ksiazki k JOIN
+	Sprzedaz s on s.ksiazkaId=k.ksiazkaId JOIN
+	Zamowienia z on z.zamowienieId=s.zamowienieId JOIN
+	Autorzy a on a.autorId=k.autorId JOIN
+	KsiazkiKategorie ksk on k.ksiazkaId= ksk.ksiazkaId JOIN
+	Kategorie kat on kat.kategoriaId=ksk.kategoriaId
+group by 
+	k.ksiazkaId, k.tytul,k.rokWydania, kat.nazwaKategorii, a.autorId, a.imie, a.nazwisko, a.pseudonim, 
+	MONTH(z.dataZamowienia) + '/' + YEAR(z.dataZamowienia)
+go
+
+
+create view StatystykaMiast_view as
+select a.miasto, 
+	COUNT(k.klientId) as liczbaKlientow, 
+	SUM(s.wartosc) as wartoscZamowien, 
+	SUM(s.ilosc) as iloscZamowionychKsiazek
+from Klienci k JOIN
+	Adresy a on a.adresId=k.adresId join
+	Zamowienia z on z.klientId=k.klientId join
+	Sprzedaz s on z.zamowienieId=s.zamowienieId
+where k.aktywny = 1
+group by a.miasto
 go

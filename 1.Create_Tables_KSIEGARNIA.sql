@@ -19,7 +19,7 @@ create table Autorzy (
 	autorId uniqueidentifier primary key default newid(),
 	imie varchar(128),
 	nazwisko varchar(256),
-	pseudonim varchar(128) --check (pseudonim is not null or (imie is not null and nazwisko is not null))
+	pseudonim varchar(128)
 )
 
 create table Kategorie (
@@ -116,7 +116,7 @@ alter table Sprzedaz add foreign key (ksiazkaId) references Ksiazki(ksiazkaId)
 
 -- ograniczenia
 alter table Klienci add constraint plecSlownik check(plec in('K', 'M', 'N'))
-alter table Autorzy add constraint pseudonimLubImieNazwisko check(pseudonim is not null or (imie is not null and nazwisko is not null))
-
-
-
+alter table Autorzy add constraint pseudonimLubImieNazwisko check(
+	(imie is null and nazwisko is null and pseudonim is not null) or 
+	(imie is not null and nazwisko is not null and pseudonim is null)
+)
