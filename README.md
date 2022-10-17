@@ -16,3 +16,9 @@ Baza będzie przechowywała podstawowe dane książek, klientów i zamówień
 - Mechanizm do edycji statusu zamówienia
 - Triggery (np. walidacje)
 - inne...
+
+# Pliki dodatkowe
+Dokumentacja do projektu zawiera:
+- graficzną reprezentacje relacji w bazie danych
+- arkusz opisu tabel w bazie danych
+- inne...

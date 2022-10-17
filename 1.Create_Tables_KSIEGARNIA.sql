@@ -62,7 +62,7 @@ create table Klienci(
 	nrKlienta int unique not null,
 	emailId uniqueidentifier not null,
 	aktywny bit not null,
-	dataAktywacji datetime2 not null,
+	dataAktywacji datetime2,
 	plec char(1) not null 
 )
 
