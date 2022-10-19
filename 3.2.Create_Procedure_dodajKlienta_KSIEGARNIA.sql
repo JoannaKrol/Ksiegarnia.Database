@@ -36,25 +36,13 @@ begin tran
 	end
 
 	-- Dodanie adresu email i statusu aktywnoœci (domyslnie na pocz¹tku zawsze aktywny)
-	insert into Emaile( adresEmail, aktywny) values(@adresEmail, 1)
-
-	-- Pobranie i przypisanie wartoœci id adresu email
-	declare @Emailid uniqueidentifier
-	select @Emailid = emailid from Emaile where adresEmail = @adresEmail
+	declare @Emailid uniqueidentifier = newid()
+	insert into Emaile(emailId, adresEmail, aktywny) values(@Emailid, @adresEmail, 1)
 
 	-- Dodanie adresu
-	insert into Adresy ( kraj, miasto, kodPocztowy, ulica, nrDomu, nrLokalu) values
-						(@kraj, @miasto, @kodPocztowy,@ulica,@nrDomu,@nrLokalu)
-
-	-- Pobranie i przypisanie id adresu
-	declare @Adresid uniqueidentifier 
-	select @Adresid = adresid from Adresy where
-		kraj = @kraj and
-		miasto = @miasto and
-		kodPocztowy = @kodPocztowy and
-		ulica = @ulica and
-		nrDomu = @nrDomu and
-		nrLokalu = @nrLokalu
+	declare @Adresid uniqueidentifier = newid() 
+	insert into Adresy (adresId, kraj, miasto, kodPocztowy, ulica, nrDomu, nrLokalu) values
+						(@Adresid, @kraj, @miasto, @kodPocztowy,@ulica,@nrDomu,@nrLokalu)
 
 	-- Nadanie numeru klienta dodawanemu klientowi
 	declare @nrKlienta int

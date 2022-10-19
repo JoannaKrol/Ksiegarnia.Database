@@ -56,16 +56,10 @@ begin tran
 		return
 	end
 
-	declare @ksiazka uniqueidentifier
+	declare @ksiazka uniqueidentifier = newid()
 
-	insert into Ksiazki(tytul, rokWydania, autorId, cena, dostepnaIlosc, oprawaTwarda) values
-		(@tytul, @rokWydania, @autor, @cena, @dostepnaIlosc, @oprawaTwarda)
-
-	select @ksiazka = ksiazkaId from Ksiazki where 
-		tytul = @tytul and
-		autorId = @autor and
-		rokWydania = @rokWydania and
-		oprawaTwarda = @oprawaTwarda
+	insert into Ksiazki(ksiazkaId, tytul, rokWydania, autorId, cena, dostepnaIlosc, oprawaTwarda) values
+		(@ksiazka, @tytul, @rokWydania, @autor, @cena, @dostepnaIlosc, @oprawaTwarda)
 
 	-- dodanie relacji ksi¹¿ki i kategorii
 	insert into KsiazkiKategorie(kategoriaId, ksiazkaId) values (@kategoria, @ksiazka)
