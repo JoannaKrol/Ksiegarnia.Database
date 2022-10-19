@@ -30,5 +30,8 @@ begin tran
 
 	update dbo.Klienci set aktywny = 1, dataAktywacji = GETDATE() where klientId = @klientId
 
+	if @@ERROR > 0
+		rollback
+
 	commit
 go

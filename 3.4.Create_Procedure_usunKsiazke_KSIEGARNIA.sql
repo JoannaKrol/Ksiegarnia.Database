@@ -40,5 +40,10 @@ begin tran
 		select kategoriaId from KsiazkiKategorie
 	)
 
+	drop table #kategorie
+	
+	if @@ERROR > 0
+		rollback
+
 	commit
 go

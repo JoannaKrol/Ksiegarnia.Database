@@ -63,6 +63,9 @@ begin tran
 
 	-- dodanie relacji ksi¹¿ki i kategorii
 	insert into KsiazkiKategorie(kategoriaId, ksiazkaId) values (@kategoria, @ksiazka)
+	
+	if @@ERROR > 0
+		rollback
 
 	commit
 go

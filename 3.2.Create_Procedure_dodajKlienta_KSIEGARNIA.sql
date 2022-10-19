@@ -52,5 +52,8 @@ begin tran
 	insert into Klienci(imie, nazwisko, aktywny, dataAktywacji, plec, emailId, adresId, nrKlienta) values 
 					   (@imie, @nazwisko, 0 , null, @plec, @Emailid, @Adresid, iif(@nrKlienta is null, 1, @nrKlienta)) 
 
+	if @@ERROR > 0
+		rollback
+
 	commit
 go
