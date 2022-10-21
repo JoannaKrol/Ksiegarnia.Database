@@ -9,12 +9,9 @@ create procedure usunKsiazke (
 )
 as
 begin tran
+begin try
 	if not exists(select * from Ksiazki where ksiazkaId = @ksiazkaId)
-	begin
 		raiserror ('Ksi¹¿ka o podanym id nie istnieje', 16, 1)
-		rollback
-		return
-	end
 
 	declare @kategoriaId uniqueidentifier
 	declare @autorId uniqueidentifier
@@ -42,8 +39,15 @@ begin tran
 
 	drop table #kategorie
 	
-	if @@ERROR > 0
-		rollback
+end try
+begin catch
+	select ERROR_MESSAGE() as Error
+	drop table if exists #kategorie
+	if @@TRANCOUNT > 0  
+        rollback
+end catch
 
+if @@TRANCOUNT > 0
 	commit
+
 go

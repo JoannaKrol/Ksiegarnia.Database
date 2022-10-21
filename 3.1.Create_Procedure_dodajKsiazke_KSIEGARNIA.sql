@@ -17,6 +17,7 @@ create procedure dodajKsiazke
 as
 
 begin tran
+begin try
 	-- pobranie id kategorii
 	declare @kategoria uniqueidentifier
 
@@ -50,11 +51,7 @@ begin tran
 	-- dodanie ksi¹¿ki
 	if exists(select ksiazkaId from Ksiazki where tytul = @tytul and autorId = @autor and 
 											rokWydania = @rokWydania and oprawaTwarda = @oprawaTwarda)
-	begin
 		raiserror('Ksi¹¿ka ju¿ istnieje w bazie danych', 16, 1)
-		rollback
-		return
-	end
 
 	declare @ksiazka uniqueidentifier = newid()
 
@@ -64,8 +61,14 @@ begin tran
 	-- dodanie relacji ksi¹¿ki i kategorii
 	insert into KsiazkiKategorie(kategoriaId, ksiazkaId) values (@kategoria, @ksiazka)
 	
-	if @@ERROR > 0
-		rollback
+end try
+begin catch
+	select ERROR_MESSAGE() as Error
+	if @@TRANCOUNT > 0  
+        rollback
+end catch
 
+if @@TRANCOUNT > 0
 	commit
+
 go

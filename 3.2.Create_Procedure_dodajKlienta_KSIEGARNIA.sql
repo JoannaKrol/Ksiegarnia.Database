@@ -18,22 +18,14 @@ create procedure dodajKlienta
 as
 
 begin tran
-
+begin try
 	-- Sprawdzenie czy podany adres email ju¿ istnieje
 	if exists(select emailid from Emaile where adresEmail = @adresEmail)
-	begin
 		raiserror ('Podany adres email ju¿ istnieje', 16, 1) 
-		rollback
-		return
-	end
 
 	-- Sprawdzenien czy nie podano pustego stringa zamiast adresu
 	if trim(@adresEmail) = '' 
-	begin
 		raiserror ('Nie podamno adresu email', 16, 1) 
-		rollback
-		return
-	end
 
 	-- Dodanie adresu email i statusu aktywnoœci (domyslnie na pocz¹tku zawsze aktywny)
 	declare @Emailid uniqueidentifier = newid()
@@ -51,9 +43,15 @@ begin tran
 	-- Dodanie klienta
 	insert into Klienci(imie, nazwisko, aktywny, dataAktywacji, plec, emailId, adresId, nrKlienta) values 
 					   (@imie, @nazwisko, 0 , null, @plec, @Emailid, @Adresid, iif(@nrKlienta is null, 1, @nrKlienta)) 
+					   
+end try
+begin catch
+	select ERROR_MESSAGE() as Error
+	if @@TRANCOUNT > 0  
+        rollback
+end catch
 
-	if @@ERROR > 0
-		rollback
-
+if @@TRANCOUNT > 0
 	commit
+
 go

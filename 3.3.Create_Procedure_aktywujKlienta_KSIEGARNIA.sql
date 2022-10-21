@@ -10,28 +10,25 @@ create procedure aktywujKlienta (
 )
 as
 begin tran
-
+begin try
 	declare @komunikat varchar(128) 
 	set @komunikat = dbo.sprawdzEmailKlienta (@klientId, @adresEmail)
 	
-	if @komunikat <> '' 
-	begin
-		raiserror (@komunikat, 16,1)
-		rollback
-		return
-	end
+	if @komunikat <> ''
+		raiserror(@komunikat, 16,1)
 
 	if (select k.aktywny from Klienci k where k.klientId = @klientId) = 1
-	begin
 		raiserror ('Klient jest ju¿ aktywny', 16, 1)
-		rollback
-		return
-	end
 
 	update dbo.Klienci set aktywny = 1, dataAktywacji = GETDATE() where klientId = @klientId
+end try
+begin catch
+	select ERROR_MESSAGE() as Error
+	if @@TRANCOUNT > 0  
+        rollback
+end catch
 
-	if @@ERROR > 0
-		rollback
-
+if @@TRANCOUNT > 0
 	commit
+
 go
