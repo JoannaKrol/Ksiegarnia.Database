@@ -21,7 +21,7 @@ begin try
 	-- pobranie id kategorii
 	select * into #kategorie from string_split(@nazwyKategorii, ';')
 
-	-- jeœli nie istnieje taka kategoria to j¹ dodaj
+	-- jeï¿½li nie istnieje taka kategoria to jï¿½ dodaj
 	insert into Kategorie(nazwaKategorii)
 		select a.value from #kategorie a where a.value not in(select nazwaKategorii from Kategorie)
 
@@ -31,7 +31,7 @@ begin try
 	-- autor ma albo imie i nazwisko albo pseudonim 
 	if @pseudonimAutora is null
 	begin
-		-- jeœli nie istnieje taki autor to go dodaj
+		-- jeï¿½li nie istnieje taki autor to go dodaj
 		if not exists(select autorId from Autorzy where imie = @imieAutora and nazwisko = @nazwiskoAutora)
 			insert into Autorzy(imie, nazwisko) values (@imieAutora, @nazwiskoAutora)
 
@@ -39,24 +39,24 @@ begin try
 	end
 	else
 	begin
-		-- jeœli nie istnieje taki autor to go dodaj
+		-- jeï¿½li nie istnieje taki autor to go dodaj
 		if not exists(select autorId from Autorzy where pseudonim = @pseudonimAutora)
 			insert into Autorzy(pseudonim) values (@pseudonimAutora)
 
 		select @autor = autorId from Autorzy where pseudonim = @pseudonimAutora
 	end
 
-	-- dodanie ksi¹¿ki
+	-- dodanie ksiï¿½ï¿½ki
 	if exists(select ksiazkaId from Ksiazki where tytul = @tytul and autorId = @autor and 
 											rokWydania = @rokWydania and oprawaTwarda = @oprawaTwarda)
-		raiserror('Ksi¹¿ka ju¿ istnieje w bazie danych', 16, 1)
+		raiserror('Ksiï¿½ï¿½ka juï¿½ istnieje w bazie danych', 16, 1)
 
 	declare @ksiazka uniqueidentifier = newid()
 
 	insert into Ksiazki(ksiazkaId, tytul, rokWydania, autorId, cena, dostepnaIlosc, oprawaTwarda) values
 		(@ksiazka, @tytul, @rokWydania, @autor, @cena, @dostepnaIlosc, @oprawaTwarda)
 
-	-- dodanie relacji ksi¹¿ki i kategorii
+	-- dodanie relacji ksiï¿½ï¿½ki i kategorii
 	insert into KsiazkiKategorie(kategoriaId, ksiazkaId) 
 		select k.kategoriaId, @ksiazka from Kategorie k where k.nazwaKategorii in(select t.value from #kategorie t)
 	
@@ -66,6 +66,8 @@ begin catch
 	if @@TRANCOUNT > 0  
         rollback
 end catch
+
+drop table if exists #kategorie
 
 if @@TRANCOUNT > 0
 	commit

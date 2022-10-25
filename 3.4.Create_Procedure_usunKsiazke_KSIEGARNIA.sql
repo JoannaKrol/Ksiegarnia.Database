@@ -36,16 +36,15 @@ begin try
 		except
 		select kategoriaId from KsiazkiKategorie
 	)
-
-	drop table #kategorie
 	
 end try
 begin catch
 	select ERROR_MESSAGE() as Error
-	drop table if exists #kategorie
 	if @@TRANCOUNT > 0  
         rollback
 end catch
+
+drop table if exists #kategorie
 
 if @@TRANCOUNT > 0
 	commit
