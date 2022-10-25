@@ -10,7 +10,7 @@ create procedure dodajKsiazke
 	@cena decimal(12,2),
 	@dostepnaIlosc int,
 	@oprawaTwarda bit,
-	@nazwaKategorii varchar(128),
+	@nazwyKategorii varchar(max),
 	@imieAutora varchar(128) = null,
 	@nazwiskoAutora varchar(256) = null,
 	@pseudonimAutora varchar(128) = null
@@ -19,13 +19,11 @@ as
 begin tran
 begin try
 	-- pobranie id kategorii
-	declare @kategoria uniqueidentifier
+	select * into #kategorie from string_split(@nazwyKategorii, ';')
 
 	-- jeœli nie istnieje taka kategoria to j¹ dodaj
-	if not exists(select kategoriaId from Kategorie where nazwaKategorii = @nazwaKategorii) 
-		insert into Kategorie(nazwaKategorii) values (@nazwaKategorii)
-
-	select @kategoria = kategoriaId from Kategorie where nazwaKategorii = @nazwaKategorii
+	insert into Kategorie(nazwaKategorii)
+		select a.value from #kategorie a where a.value not in(select nazwaKategorii from Kategorie)
 
 	-- pobranie id autora
 	declare @autor uniqueidentifier
@@ -59,7 +57,8 @@ begin try
 		(@ksiazka, @tytul, @rokWydania, @autor, @cena, @dostepnaIlosc, @oprawaTwarda)
 
 	-- dodanie relacji ksi¹¿ki i kategorii
-	insert into KsiazkiKategorie(kategoriaId, ksiazkaId) values (@kategoria, @ksiazka)
+	insert into KsiazkiKategorie(kategoriaId, ksiazkaId) 
+		select k.kategoriaId, @ksiazka from Kategorie k where k.nazwaKategorii in(select t.value from #kategorie t)
 	
 end try
 begin catch
